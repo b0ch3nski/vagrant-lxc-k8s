@@ -1,0 +1,10 @@
+---
+- name: yum cleanup
+  tags: skip_ansible_lint
+  shell: yum clean all
+  register: yum_clean
+  failed_when: yum_clean.rc != 0
+
+- name: reload systemd daemons
+  systemd:
+    daemon_reload: True

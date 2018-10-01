@@ -1,0 +1,10 @@
+---
+- name: restart kubelet
+  systemd:
+    name: kubelet
+    state: restarted
+
+- name: restart kubectl-proxy
+  systemd:
+    name: "kubectl-proxy@{{ k8s_kubectl_proxy_port }}"
+    state: restarted

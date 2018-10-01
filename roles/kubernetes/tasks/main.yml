@@ -1,0 +1,62 @@
+---
+- name: enable kubernetes repo
+  yum_repository:
+    name: kubernetes
+    description: kubernetes
+    baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-$basearch
+    gpgkey:
+      - https://packages.cloud.google.com/yum/doc/yum-key.gpg
+      - https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+    gpgcheck: True
+    state: present
+  notify:
+    - yum cleanup
+
+- meta: flush_handlers
+
+- name: install kubernetes packages
+  yum:
+    name: "{{ item }}"
+    state: present
+  with_items: "{{ k8s_packages }}"
+
+- name: configure kubeadm dropin
+  lineinfile:
+    backrefs: True
+    regexp: '^(ExecStart=\/(?!.*{{ k8s_kubeadm_params }}).*)$'
+    line: '\1 {{ k8s_kubeadm_params }}'
+    dest: /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
+    state: present
+  notify:
+    - reload systemd daemons
+    - restart kubelet
+
+- meta: flush_handlers
+
+- name: ensure kubelet is enabled and running
+  systemd:
+    name: kubelet
+    state: started
+    enabled: True
+
+- name: pull kubernetes docker images
+  shell: >
+    kubeadm config images pull
+    --kubernetes-version={{ k8s_version }}
+  register: pull_images
+  failed_when: pull_images.rc != 0 or 'failed to pull image' in pull_images.stderr
+
+- include: init_master.yml
+  when: inventory_hostname in groups.k8s_master
+
+- name: join cluster as slave
+  when: inventory_hostname in groups.k8s_slave
+  shell: "{{ hostvars[groups['k8s_master'][0]].join_command }}"
+  register: join_slave
+  failed_when: join_slave.rc != 0 or 'node has joined' not in join_slave.stdout
+
+- include: config.yml
+  when: inventory_hostname in groups.k8s_master
+  tags: config
+  environment:
+    KUBECONFIG: /etc/kubernetes/admin.conf

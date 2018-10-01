@@ -1,0 +1,9 @@
+{
+  "debug": {{ docker_enable_debug | default(False, True) | bool | lower }},
+  "disable-legacy-registry": true,
+  "graph": "{{ docker_data_dir }}",
+  "log-driver": "journald",
+  "max-concurrent-downloads": 25,
+  "max-concurrent-uploads": 25,
+  "storage-driver": "overlay2"
+}

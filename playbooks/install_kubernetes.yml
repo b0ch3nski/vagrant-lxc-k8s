@@ -1,0 +1,19 @@
+---
+- name: kubernetes installation playbook
+  hosts: k8s
+  become: True
+  become_user: root
+  any_errors_fatal: True
+  roles:
+    - { role: 'common', tags: ['common'] }
+    - { role: 'yum', tags: ['yum'] }
+    - { role: 'docker', tags: ['docker'] }
+    - { role: 'kubernetes', tags: ['kubernetes', 'skip_ansible_lint'] }
+  handlers:
+    - include: ../handlers/global.yml
+  vars_files:
+    - ../vars/global.yml
+  environment:
+    http_proxy: "{{ http_proxy | default(lookup('env', 'http_proxy'), True) }}"
+    https_proxy: "{{ https_proxy | default(lookup('env', 'https_proxy'), True) }}"
+    no_proxy: "{{ no_proxy | default(lookup('env', 'no_proxy'), True) | default('127.0.0.1,localhost', True) }},{{ k8s_service_network }},{{ k8s_pod_network }}{% if lxc_network is defined %},{{ lxc_network }}{% endif %}"

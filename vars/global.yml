@@ -1,0 +1,9 @@
+---
+k8s_service_network: 10.96.0.0/12
+k8s_pod_network: 10.244.0.0/16
+
+# optional variables - define following per inventory
+#lxc_network:
+#http_proxy:
+#https_proxy:
+#no_proxy:

@@ -1,0 +1,25 @@
+---
+- name: disable obsoletes processing logic
+  lineinfile:
+    regexp: '^obsoletes='
+    insertafter: '^\[main\]$'
+    line: 'obsoletes=0'
+    dest: /etc/yum.conf
+    state: present
+
+- name: enable proxy for all repos
+  when: ansible_env.http_proxy is defined and ansible_env.http_proxy != ""
+  tags: proxy
+  lineinfile:
+    regexp: '^proxy='
+    insertafter: '^\[main\]$'
+    line: "proxy={{ ansible_env.http_proxy }}"
+    dest: /etc/yum.conf
+    state: present
+
+- name: upgrade all packages
+  when: system_upgrade
+  tags: upgrade, skip_ansible_lint
+  yum:
+    name: "*"
+    state: latest

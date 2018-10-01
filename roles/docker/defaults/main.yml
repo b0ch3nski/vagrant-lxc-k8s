@@ -1,0 +1,5 @@
+---
+docker_version: 17.03.3.ce-1
+
+docker_enable_debug: False
+docker_data_dir: /var/lib/docker

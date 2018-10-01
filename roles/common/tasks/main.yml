@@ -1,0 +1,16 @@
+---
+- name: set hostname
+  hostname:
+    name: "{{ inventory_hostname }}"
+
+- name: set timezone
+  when: timezone is defined
+  timezone:
+    name: "{{ timezone }}"
+
+- name: add proxy settings to bash
+  when: ansible_env.http_proxy is defined and ansible_env.http_proxy != ""
+  tags: proxy
+  template:
+    src: proxy.sh
+    dest: /etc/profile.d/proxy.sh

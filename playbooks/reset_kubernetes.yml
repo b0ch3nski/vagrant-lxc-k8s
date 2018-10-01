@@ -1,0 +1,10 @@
+---
+- name: kubernetes reset playbook
+  hosts: k8s
+  become: True
+  become_user: root
+  tasks:
+    - name: reset kubernetes cluster
+      tags: skip_ansible_lint
+      shell: kubeadm reset --force --ignore-preflight-errors=all
+      failed_when: False

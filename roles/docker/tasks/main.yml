@@ -1,0 +1,54 @@
+---
+- name: enable docker repo
+  yum_repository:
+    name: docker
+    description: docker
+    baseurl: https://download.docker.com/linux/centos/7/$basearch/stable
+    gpgkey: https://download.docker.com/linux/centos/gpg
+    gpgcheck: True
+    state: present
+  notify:
+    - yum cleanup
+
+- meta: flush_handlers
+
+- name: install docker package
+  yum:
+    name: "docker-ce-{{ docker_version }}.el7"
+    allow_downgrade: True
+    state: present
+
+- name: ensure all dirs exist
+  file:
+    path: "{{ item }}"
+    state: directory
+    recurse: True
+  with_items:
+    - "{{ docker_data_dir }}"
+    - /etc/systemd/system/docker.service.d
+    - /etc/docker
+
+- name: create daemon config file
+  template:
+    src: daemon.json
+    dest: /etc/docker/daemon.json
+  notify:
+    - restart docker
+
+- name: create systemd config file
+  when: ansible_env.http_proxy is defined and ansible_env.http_proxy != ""
+  tags: proxy
+  template:
+    src: systemd.conf
+    dest: /etc/systemd/system/docker.service.d/override.conf
+  notify:
+    - reload systemd daemons
+    - restart docker
+
+- meta: flush_handlers
+
+- name: ensure docker is enabled and running
+  systemd:
+    name: docker
+    state: started
+    enabled: True

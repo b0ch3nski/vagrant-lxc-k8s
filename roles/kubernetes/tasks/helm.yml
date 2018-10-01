@@ -1,0 +1,27 @@
+---
+- name: install helm package
+  unarchive:
+    remote_src: True
+    src: "{{ k8s_helm_package }}"
+    extra_opts: ['--strip-components=1']
+    dest: /usr/local/bin
+
+- name: grant admin privileges for tiller
+  shell: kubectl create -f -
+  args:
+    stdin: "{{ lookup('file', 'tiller-admin.yml') }}"
+  register: tiller_admin
+  changed_when: "'created' in tiller_admin.stdout"
+  failed_when: tiller_admin.rc != 0
+
+- name: initialize helm
+  shell: >
+    ./helm init
+    --service-account tiller
+    --skip-refresh
+    --upgrade
+    --wait
+  args:
+    chdir: /usr/local/bin
+  register: init_helm
+  failed_when: init_helm.rc != 0 or 'Happy Helming' not in init_helm.stdout

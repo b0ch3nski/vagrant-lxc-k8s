@@ -1,0 +1,33 @@
+---
+- name: remove master node taint
+  shell: kubectl taint nodes --all node-role.kubernetes.io/master-
+  register: master_taint
+  changed_when: "'untainted' in master_taint.stdout"
+  failed_when: False
+
+- name: provision flannel network
+  shell: "kubectl apply -f {{ k8s_flannel_definition }}"
+  register: flannel_network
+  changed_when: "'created' in flannel_network.stdout"
+  failed_when: flannel_network.rc != 0
+
+- name: provision kubernetes dashboard
+  shell: "kubectl create -f {{ k8s_dashboard_definition }}"
+  register: k8s_dashboard
+  changed_when: "'created' in k8s_dashboard.stdout"
+  failed_when: k8s_dashboard.rc != 0
+
+- name: grant admin privileges for dashboard
+  shell: kubectl create -f -
+  args:
+    stdin: "{{ lookup('file', 'dashboard-admin.yml') }}"
+  register: dashboard_admin
+  changed_when: "'created' in dashboard_admin.stdout"
+  failed_when: dashboard_admin.rc != 0
+
+- include: helm.yml
+  tags: helm
+
+- include: istio.yml
+  when: k8s_istio_install | default(False, True) | bool
+  tags: istio

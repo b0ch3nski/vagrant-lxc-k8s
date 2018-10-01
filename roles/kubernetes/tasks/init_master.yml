@@ -1,0 +1,41 @@
+---
+- name: initialize kubernetes cluster
+  shell: >
+    kubeadm init
+    --kubernetes-version={{ k8s_version }}
+    --service-cidr={{ k8s_service_network }}
+    --pod-network-cidr={{ k8s_pod_network }}
+    --ignore-preflight-errors=all
+  register: init_master
+  failed_when: init_master.rc != 0 or 'initialized successfully' not in init_master.stdout
+
+- name: install kubectl-proxy service
+  copy:
+    src: kubectl-proxy@.service
+    dest: /etc/systemd/system
+  notify:
+    - reload systemd daemons
+    - restart kubectl-proxy
+
+- meta: flush_handlers
+
+- name: ensure kubectl-proxy is enabled and running
+  systemd:
+    name: "kubectl-proxy@{{ k8s_kubectl_proxy_port }}"
+    state: started
+    enabled: True
+
+- name: fetch kubeconfig
+  fetch:
+    src: /etc/kubernetes/admin.conf
+    dest: ~/.kube/config
+    flat: yes
+
+- name: get cluster join command
+  shell: kubeadm token create --print-join-command
+  register: join_command
+  failed_when: join_command.rc != 0 or 'kubeadm join' not in join_command.stdout
+
+- name: register cluster join command
+  set_fact:
+    join_command: "{{ join_command.stdout }} --ignore-preflight-errors=all"

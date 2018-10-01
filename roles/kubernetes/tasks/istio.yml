@@ -1,0 +1,20 @@
+---
+- name: install istio package
+  unarchive:
+    remote_src: True
+    src: "{{ k8s_istio_package }}"
+    dest: /usr/local/bin
+    extra_opts:
+      - --transform
+      - "s/^istio-{{ k8s_istio_version }}/istio/"
+
+- name: provision istio service mesh
+  shell: >
+    ./helm install
+    istio/install/kubernetes/helm/istio
+    --namespace istio-system
+    --name istio
+  args:
+    chdir: /usr/local/bin
+  register: install_istio
+  failed_when: install_istio.rc != 0
