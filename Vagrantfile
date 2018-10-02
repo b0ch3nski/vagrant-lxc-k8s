@@ -1,10 +1,9 @@
-VAGRANT_LXC_K8S_SLAVES = 1
-
-CONTAINERS = VAGRANT_LXC_K8S_SLAVES + 1
+SLAVES = Integer(ENV['VAGRANT_LXC_K8S_SLAVES']) rescue 1
+CONTAINERS = SLAVES + 1
 ANSIBLE_GROUPS = {}
 ANSIBLE_GROUPS['k8s'] = (1..CONTAINERS).map { |index| "k8s-#{index}" }
 ANSIBLE_GROUPS['k8s_master'] = ANSIBLE_GROUPS['k8s'][0]
-ANSIBLE_GROUPS['k8s_slave'] = VAGRANT_LXC_K8S_SLAVES > 0 ? ANSIBLE_GROUPS['k8s'][1..CONTAINERS] : ''
+ANSIBLE_GROUPS['k8s_slave'] = SLAVES > 0 ? ANSIBLE_GROUPS['k8s'][1..CONTAINERS] : ''
 ANSIBLE_GROUPS['k8s:vars'] = {
     lxc_network: %x(ip -o -4 addr | awk '/lxcbr0/ { print $4 }').chomp,
     timezone: %x(timedatectl show --property=Timezone --value).chomp

@@ -8,9 +8,9 @@ k8s_istio_version: 1.0.2
 k8s_kubectl_proxy_port: 8080
 
 k8s_packages:
-  - kubelet
-  - kubeadm
-  - kubectl
+  - "kubelet-{{ k8s_version }}-0"
+  - "kubeadm-{{ k8s_version }}-0"
+  - "kubectl-{{ k8s_version }}-0"
 
 k8s_istio_install: False
 

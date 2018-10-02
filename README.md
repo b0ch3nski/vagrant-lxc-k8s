@@ -2,10 +2,10 @@
 Run multi-node **Kubernetes** locally using **Linux Containers**.
 
 ## Requirements
-* **LXC** configured
-  * with IP address assigned to `lxcbr0` bridge
+* **LXC** >= 2.1
+  * configured to use `lxcbr0` network bridge
 * **Vagrant** >= 2.1
-  * with `vagrant-lxc` plugin installed
+  * with plugin **vagrant-lxc** >= 1.4.0
 * **Ansible** >= 2.6
 
 Optionally, **Kubectl** and **Helm** could be installed and used on host system to control the cluster in containers.
@@ -57,7 +57,7 @@ Reset **Kubernetes** configuration without recreating containers:
 ansible-playbook -i .vagrant/provisioners/ansible/inventory/vagrant_ansible_inventory playbooks/reset_kubernetes.yml
 vagrant provision
 ```
-**Hint:** Direct `install_kubernetes.yml` playbook launching is also possible (with support for tags).
+**Hint:** Direct `install_kubernetes.yml` playbook launch is also possible (with support for tags).
 
 ### Status
 Check containers status:

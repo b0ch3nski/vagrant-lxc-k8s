@@ -4,7 +4,7 @@
     name: "{{ inventory_hostname }}"
 
 - name: set timezone
-  when: timezone is defined
+  when: timezone is defined and timezone != ""
   timezone:
     name: "{{ timezone }}"
 
