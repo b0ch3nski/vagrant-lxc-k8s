@@ -1,17 +1,26 @@
-SLAVES = Integer(ENV['VAGRANT_LXC_K8S_SLAVES']) rescue 1
-CONTAINERS = SLAVES + 1
+Vagrant.require_version '>= 2.1.5'
+raise 'vagrant-lxc plugin is not installed!' unless Vagrant.has_plugin?('vagrant-lxc', '>= 1.4.0')
+ENV['VAGRANT_DEFAULT_PROVIDER'] = 'lxc'
+
+require 'yaml'
+DIR = File.dirname(__FILE__)
+PROFILE = YAML.load_file(File.join(DIR, (ENV['VAGRANT_LXC_K8S_PROFILE'] || 'default.yml')))
+
+CONTAINERS = PROFILE['system']['slaves'] + 1
 ANSIBLE_GROUPS = {}
 ANSIBLE_GROUPS['k8s'] = (1..CONTAINERS).map { |index| "k8s-#{index}" }
 ANSIBLE_GROUPS['k8s_master'] = ANSIBLE_GROUPS['k8s'][0]
-ANSIBLE_GROUPS['k8s_slave'] = SLAVES > 0 ? ANSIBLE_GROUPS['k8s'][1..CONTAINERS] : ''
+ANSIBLE_GROUPS['k8s_slave'] = PROFILE['system']['slaves'] > 0 ? ANSIBLE_GROUPS['k8s'][1..CONTAINERS] : ''
+
 ANSIBLE_GROUPS['k8s:vars'] = {
-    lxc_network: %x(ip -o -4 addr | awk '/lxcbr0/ { print $4 }').chomp,
-    timezone: %x(timedatectl show --property=Timezone --value).chomp
+    lxc_network: %x(ip -o -4 addr | awk '/#{PROFILE['system']['lxc_bridge']}/ { print $4 }').chomp,
+    timezone: %x(timedatectl show | awk -F '=' '/Timezone=/ { print $2 }').chomp
 }
+ANSIBLE_GROUPS['k8s:vars'].merge!(PROFILE['ansible'] || {})
 
 Vagrant.configure(2) do |config|
-  config.vm.box = 'magneticone/centos-7'
-  config.vm.box_version = '1805.01'
+  config.vm.box = PROFILE['system']['box']
+  config.vm.box_version = PROFILE['system']['box_version']
   config.vm.box_check_update = false
   config.ssh.insert_key = false
 
@@ -22,7 +31,7 @@ Vagrant.configure(2) do |config|
       container.vm.provider :lxc do |lxc|
         lxc.privileged = true
         lxc.container_name = container_name
-        lxc.customize 'cgroup.memory.limit_in_bytes', '8192M'
+        lxc.customize 'cgroup.memory.limit_in_bytes', PROFILE['system']['container_ram']
         lxc.customize 'cgroup.devices.allow', 'a'
         lxc.customize 'mount.auto', 'proc:rw sys:rw'
         lxc.customize 'cap.drop', nil
@@ -32,7 +41,7 @@ Vagrant.configure(2) do |config|
         container.vm.provision 'ansible' do |ansible|
           ansible.compatibility_mode = '2.0'
           ansible.groups = ANSIBLE_GROUPS
-          ansible.playbook = 'playbooks/install_kubernetes.yml'
+          ansible.playbook = File.join(DIR, 'playbooks', 'install_kubernetes.yml')
           ansible.verbose = ENV['VAGRANT_LOG'] == 'debug' ? 'vvvv' : ''
           ansible.limit = 'all'
         end
