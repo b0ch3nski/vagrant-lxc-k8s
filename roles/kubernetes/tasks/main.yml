@@ -44,7 +44,9 @@
     kubeadm config images pull
     --kubernetes-version={{ k8s_version }}
   register: pull_images
-  failed_when: pull_images.rc != 0 or 'failed to pull image' in pull_images.stderr
+  until: pull_images.rc == 0 and 'failed to pull image' not in pull_images.stderr
+  retries: 10
+  delay: 1
 
 - include: init_master.yml
   when: inventory_hostname in groups.k8s_master

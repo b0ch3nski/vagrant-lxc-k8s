@@ -14,7 +14,7 @@ ANSIBLE_GROUPS['k8s_slave'] = PROFILE['system']['slaves'] > 0 ? ANSIBLE_GROUPS['
 
 ANSIBLE_GROUPS['k8s:vars'] = {
     lxc_network: %x(ip -o -4 addr | awk '/#{PROFILE['system']['lxc_bridge']}/ { print $4 }').chomp,
-    timezone: %x(timedatectl show | awk -F '=' '/Timezone=/ { print $2 }').chomp
+    timezone: %x(timedatectl | awk '/Time zone:/ { print $3 }').chomp
 }
 ANSIBLE_GROUPS['k8s:vars'].merge!(PROFILE['ansible'] || {})
 

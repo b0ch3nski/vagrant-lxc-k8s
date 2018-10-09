@@ -55,6 +55,8 @@ provisioner.
 
 Administrator **Kubectl** configuration will be automatically copied to your local `~/.kube/config` on host system.
 
+Cluster is fully operational when `kubectl get pods -n kube-system` query returns all pods in `Running` state.
+
 Dashboard should be available at following URL:
 ```
 http://<K8S-1-CONTAINER-IP>:8080/api/v1/namespaces/kube-system/services/https:kubernetes-dashboard:/proxy/
