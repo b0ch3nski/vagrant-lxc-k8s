@@ -15,8 +15,8 @@ k8s_packages:
 k8s_istio_install: False
 
 k8s_kubeadm_params: "--fail-swap-on=false --allow-privileged=true"
-
+k8s_dashboard_definition: "https://raw.githubusercontent.com/kubernetes/dashboard/{{ k8s_dashboard_version }}/aio/deploy/recommended/kubernetes-dashboard.yaml"
 k8s_flannel_definition: "http://raw.githubusercontent.com/coreos/flannel/{{ k8s_flannel_version }}/Documentation/kube-flannel.yml"
-k8s_dashboard_definition: "http://raw.githubusercontent.com/kubernetes/dashboard/{{ k8s_dashboard_version }}/src/deploy/recommended/kubernetes-dashboard.yaml"
+
 k8s_helm_package: "https://kubernetes-helm.storage.googleapis.com/helm-v{{ k8s_helm_version }}-linux-amd64.tar.gz"
 k8s_istio_package: "https://github.com/istio/istio/releases/download/{{ k8s_istio_version }}/istio-{{ k8s_istio_version }}-linux.tar.gz"
