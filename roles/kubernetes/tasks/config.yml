@@ -12,7 +12,9 @@
   failed_when: flannel_network.rc != 0
 
 - name: provision kubernetes dashboard
-  shell: "kubectl create -f {{ k8s_dashboard_definition }}"
+  shell: kubectl create -f -
+  args:
+    stdin: "{{ lookup('url', k8s_dashboard_definition, split_lines=False) | regex_replace('args:', 'args:\n          - --enable-skip-login\n          - --disable-settings-authorizer') }}"
   register: k8s_dashboard
   changed_when: "'created' in k8s_dashboard.stdout"
   failed_when: k8s_dashboard.rc != 0

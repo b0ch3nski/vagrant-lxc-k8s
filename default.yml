@@ -1,7 +1,7 @@
 ---
 system:
   box: magneticone/centos-7
-  box_version: "1805.01"
+  box_version: "1811.01"
   lxc_bridge: lxcbr0
   container_ram: 8192M
   slaves: 1

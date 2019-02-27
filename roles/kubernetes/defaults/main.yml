@@ -1,9 +1,9 @@
 ---
-k8s_version: 1.11.3
+k8s_version: 1.13.3
 k8s_flannel_version: master
 k8s_dashboard_version: master
-k8s_helm_version: 2.11.0
-k8s_istio_version: 1.0.2
+k8s_helm_version: 2.12.3
+k8s_istio_version: 1.0.6
 
 k8s_kubectl_proxy_port: 8080
 
